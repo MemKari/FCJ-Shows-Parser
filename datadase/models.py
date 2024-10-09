@@ -5,9 +5,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from config import DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
 
-'''Переменная metadata действительно не нужна в вашем коде, так как вы используете декларативный стиль 
-определения моделей с помощью SQLAlchemy ORM, который сам управляет метаданными. Убедитесь, 
-что вы вызываете Base.metadata.create_all(engine) вместо metadata.create_all(engine) для создания таблиц.'''
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
