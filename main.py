@@ -8,6 +8,7 @@ from telethon.errors import PhoneNumberInvalidError, SessionPasswordNeededError
 
 from config import api_id, api_hash, phone
 from datadase.models import create_db_and_tables
+from datadase.db_operations import are_posts_the_same, get_last_announcement_from_db
 
 link = r'http://www.fcg.ge/rus/'
 
@@ -18,13 +19,14 @@ async def fetch_html(url):
             return await response.text()
 
 
-async def get_new_show():
+async def get_last_header_from_website() -> str:
     html = await fetch_html(link)
     soup = BeautifulSoup(html, 'html.parser')
     last_post = soup.find('td', class_='contentheading')
     last_post_header = last_post.getText().strip()
     print(last_post_header)
-    return True
+    return last_post_header
+
 
 
 async def create_tg_client():
@@ -49,14 +51,21 @@ async def create_tg_client():
 
 async def send_tg_notification(client):
     me = await client.get_me()
-    await client.send_message(me.id, 'Привет! Это сообщение самому себе.')
+    new_show_header = await get_last_header_from_website()
+    await client.send_message(me.id, f'A New Dog Show in Georgia is announced! {new_show_header}, details here: {link}')
+
 
 
 async def main():
     await create_db_and_tables()
-    client = await create_tg_client()
-    await send_tg_notification(client)
-    await get_new_show()
+
+    from_db = await get_last_announcement_from_db()
+    from_website = await get_last_header_from_website()
+    posts_the_same = await are_posts_the_same(from_db, from_website)
+
+    if not posts_the_same:
+        client = await create_tg_client()
+        await send_tg_notification(client)
 
 
 asyncio.run(main())
